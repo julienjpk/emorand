@@ -115,5 +115,4 @@ fn main() {
 
     /* Print the code point (UTF-32 -> UTF-8 in most cases) */
     print!("{}", std::char::from_u32(codepoint).unwrap());
-    std::io::stdout().flush().unwrap();
 }
