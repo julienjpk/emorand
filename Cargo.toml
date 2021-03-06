@@ -1,0 +1,13 @@
+[package]
+name = "emorand"
+version = "1.0.0"
+authors = ["Julien JPK"]
+edition = "2018"
+license = "AGPL-3.0-or-later"
+
+[dependencies]
+directories = "3.0"
+rand = "0.8.3"
+byteorder = "1.4.2"
+reqwest = { version = "0.11.1", features = ["blocking"] }
+regex = "1.4.3"
