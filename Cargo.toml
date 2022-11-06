@@ -1,9 +1,13 @@
 [package]
 name = "emorand"
+description = "Just a random emoji"
 version = "1.0.0"
-authors = ["Julien JPK"]
-edition = "2018"
+authors = ["Julien JPK <mail@jjpk.me>"]
+repository = "https://gitlab.com/julienjpk/emorand"
 license = "AGPL-3.0-or-later"
+keywords = ["emoji"]
+categories = ["command-line-utilities"]
+edition = "2018"
 
 [dependencies]
 directories = "3.0"

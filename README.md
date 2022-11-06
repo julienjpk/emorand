@@ -30,15 +30,17 @@ If you, too, like to have git info and other stuff like that in your prompt, you
 
 ### 🔧 Build and install
 
-As of this writing, emorand has yet to be published to distribution repositories or even crates.io (I know, shocking). Until this blessed day comes, you may build and install emorand from source with:
+As of this writing, emorand has yet to be published to distribution repositories (I know, shocking). Until this blessed day comes, you may get it from crates.io with:
+
+    $ cargo install emorand
+
+Or build and install it from source with:
 
     $ cargo build --release
 
 How and where you install it then is up to you. I, for one, have chosen to simply use `install`...
 
     $ sudo install -m0755 target/release/emorand /usr/local/bin
-
-... but `cargo install` is also a very good option (if you can figure out the right options).
 
 ### 🪲 Caveats
 
