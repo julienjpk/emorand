@@ -32,7 +32,7 @@ static UNICODE_URL: &str = "https://unicode.org/Public/emoji/13.1/emoji-sequence
 fn create_cache(mut cache_rw: std::fs::File) {
     let sequence_regex = Regex::new(r"^[A-F0-9]+(\.\.[A-F0-9]+)? +;").unwrap();
     let response_text = reqwest::blocking::get(UNICODE_URL)
-	.expect(&format!("failed to fetch {} to build the emoji cache", UNICODE_URL))
+        .expect(&format!("failed to fetch {} to build the emoji cache", UNICODE_URL))
         .text()
         .expect(&format!("failed to parse {} when trying to build the emoji cache", UNICODE_URL));
     let sequence_strings: Vec<&str> = response_text.lines()
@@ -41,62 +41,63 @@ fn create_cache(mut cache_rw: std::fs::File) {
         .collect();
 
     for sequence_string in sequence_strings.iter() {
-	let parts: Vec<&str> = sequence_string.split("..").collect();
-	match parts.len() {
-	    1 => {
-		/* Single code point: one emoji on this line */
-		let codepoint = u32::from_str_radix(parts[0], 16)
-		    .expect(&format!("invalid code point encountered when building cache: {}", parts[0]));
-		cache_rw.write_u32::<NativeEndian>(codepoint)
-		    .expect(&format!("failed to write while building emoji cache"));
-	    },
-	    2 => {
-		/* Two code points: this is a code point range */
-		let bounds: Vec<u32> = parts.iter().map(
-		    |s| u32::from_str_radix(s, 16)
-			.expect(&format!("invalid code point interval encountered when building cache: {}",
-					 sequence_string)))
-		    .collect();
+        let parts: Vec<&str> = sequence_string.split("..").collect();
+        match parts.len() {
+            1 => {
+                /* Single code point: one emoji on this line */
+                let codepoint = u32::from_str_radix(parts[0], 16)
+                    .expect(&format!("invalid code point encountered when building cache: {}", parts[0]));
+                cache_rw.write_u32::<NativeEndian>(codepoint)
+                    .expect(&format!("failed to write while building emoji cache"));
+            },
+            2 => {
+                /* Two code points: this is a code point range */
+                let bounds: Vec<u32> = parts.iter().map(
+                    |s| u32::from_str_radix(s, 16)
+                        .expect(&format!("invalid code point interval encountered when building cache: {}",
+                                         sequence_string)))
+                    .collect();
 
-		assert!(bounds[0] <= bounds[1],
-			format!("reversed code point interval encountered when building cache: {}", sequence_string));
+                assert!(bounds[0] <= bounds[1],
+                        "reversed code point interval encountered when building cache: {}",
+                        sequence_string);
 
-		for codepoint in bounds[0]..=bounds[1] {
-		    cache_rw.write_u32::<NativeEndian>(codepoint)
-			.expect(&format!("failed to write while building emoji cache"));
-		}
-	    },
-	    _ => ()
-	}
+                for codepoint in bounds[0]..=bounds[1] {
+                    cache_rw.write_u32::<NativeEndian>(codepoint)
+                        .expect(&format!("failed to write while building emoji cache"));
+                }
+            },
+            _ => ()
+        }
     }
 }
 
 fn main() {
     let project_dirs = ProjectDirs::from("me.jjpk", "jjpk", "emorand")
-	.expect("failed to determine standard directories on this system");
+        .expect("failed to determine standard directories on this system");
     let cache_dir = project_dirs.cache_dir();
 
     std::fs::create_dir_all(cache_dir)
-	.expect(&format!("failed to create cache directory {}", cache_dir.to_str().unwrap()));
+        .expect(&format!("failed to create cache directory {}", cache_dir.to_str().unwrap()));
 
     let cache_path = cache_dir.join(CACHE_FILENAME);
     let cache_path_str = cache_path.to_str().unwrap();
 
     /* Create the emoji cache if the file doesn't exist yet */
     match OpenOptions::new().create_new(true).write(true).open(&cache_path) {
-	Ok(cache_rw) => create_cache(cache_rw),
-	Err(cache_rw_error) => if let AlreadyExists = cache_rw_error.kind() { () } else {
-	    panic!("Error while opening cache file at {}: {}", cache_path_str, cache_rw_error)
-	}
+        Ok(cache_rw) => create_cache(cache_rw),
+        Err(cache_rw_error) => if let AlreadyExists = cache_rw_error.kind() { () } else {
+            panic!("Error while opening cache file at {}: {}", cache_path_str, cache_rw_error)
+        }
     }
 
     /* Get the cache length, check that it's a multiple of 4 (4 bytes per code point) */
     let cache_meta = std::fs::metadata(&cache_path)
-	.expect(&format!("failed to get metadata for cache at {}", cache_path_str));
+        .expect(&format!("failed to get metadata for cache at {}", cache_path_str));
     let cache_bytes = cache_meta.len();
 
     if cache_bytes == 0 || cache_bytes % 4 != 0 {
-	panic!("the emojirand cache file at {} appears to be corrupted (delete it)", cache_path_str)
+        panic!("the emojirand cache file at {} appears to be corrupted (delete it)", cache_path_str)
     }
 
     /* Pick a random code point index in the file */
@@ -105,13 +106,13 @@ fn main() {
     let codepoint_start = random_byte - random_byte % 4;
 
     let mut cache_ro = std::fs::File::open(&cache_path)
-	.expect(&format!("failed to open cache file at {}", cache_path_str));
+        .expect(&format!("failed to open cache file at {}", cache_path_str));
     cache_ro.seek(SeekFrom::Start(codepoint_start))
-	.expect(&format!("failed to seek on emoji cache file at {}", cache_path_str));
+        .expect(&format!("failed to seek on emoji cache file at {}", cache_path_str));
 
     /* Fetch the UTF-32 code point */
     let codepoint = cache_ro.read_u32::<NativeEndian>()
-	.expect(&format!("failed to extract emoji from cache file at {}", cache_path_str));
+        .expect(&format!("failed to extract emoji from cache file at {}", cache_path_str));
 
     /* Print the code point (UTF-32 -> UTF-8 in most cases) */
     print!("{}", std::char::from_u32(codepoint).unwrap());
